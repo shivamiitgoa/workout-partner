@@ -71,14 +71,15 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
 
   const updateSet = (setIndex: number, field: keyof WorkoutSet, value: string | number) => {
     const newSets = [...sets];
-    if (newSets[setIndex]) {
+    const currentSet = newSets[setIndex];
+    if (currentSet) {
       let parsedValue: string | number = value;
       if (field === 'preparation' || field === 'repetitions') {
         const parsed = parseInt(value.toString());
         parsedValue = isNaN(parsed) ? 0 : parsed;
       }
       newSets[setIndex] = {
-        ...newSets[setIndex],
+        ...currentSet,
         [field]: parsedValue,
       };
       setSets(newSets);
@@ -87,32 +88,43 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
 
   const addInterval = (setIndex: number) => {
     const newSets = [...sets];
-    if (newSets[setIndex] && newSets[setIndex].intervals) {
-      newSets[setIndex].intervals.push({ name: 'New Interval', duration: 30, endSound: 'no_beep' });
+    const currentSet = newSets[setIndex];
+    if (currentSet) {
+      currentSet.intervals = [
+        ...currentSet.intervals,
+        { name: 'New Interval', duration: 30, endSound: 'no_beep' }
+      ];
       setSets(newSets);
     }
   };
 
   const updateInterval = (setIndex: number, intervalIndex: number, field: keyof WorkoutInterval, value: string | number) => {
     const newSets = [...sets];
-    if (newSets[setIndex] && newSets[setIndex].intervals?.[intervalIndex]) {
-      let parsedValue: string | number = value;
-      if (field === 'duration') {
-        const parsed = parseInt(value.toString());
-        parsedValue = isNaN(parsed) ? 0 : parsed;
-      }
-      newSets[setIndex].intervals[intervalIndex] = {
-        ...newSets[setIndex].intervals[intervalIndex],
-        [field]: parsedValue,
-      };
-      setSets(newSets);
+    const currentSet = newSets[setIndex];
+    if (!currentSet) return;
+
+    const currentInterval = currentSet.intervals[intervalIndex];
+    if (!currentInterval) return;
+
+    let parsedValue: string | number = value;
+    if (field === 'duration') {
+      const parsed = parseInt(value.toString());
+      parsedValue = isNaN(parsed) ? 0 : parsed;
     }
+
+    currentSet.intervals[intervalIndex] = {
+      ...currentInterval,
+      [field]: parsedValue,
+    };
+
+    setSets(newSets);
   };
 
   const removeInterval = (setIndex: number, intervalIndex: number) => {
     const newSets = [...sets];
-    if (newSets[setIndex] && newSets[setIndex].intervals) {
-      newSets[setIndex].intervals = newSets[setIndex].intervals.filter((_, i) => i !== intervalIndex);
+    const currentSet = newSets[setIndex];
+    if (currentSet) {
+      currentSet.intervals = currentSet.intervals.filter((_, i) => i !== intervalIndex);
       setSets(newSets);
     }
   };

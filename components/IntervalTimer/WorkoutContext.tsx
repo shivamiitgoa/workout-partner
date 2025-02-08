@@ -16,17 +16,56 @@ interface WorkoutContextType {
 
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
 
+function isValidWorkoutState(value: unknown): value is WorkoutState {
+  if (typeof value !== 'object' || value === null) return false;
+  
+  const state = value as Partial<WorkoutState>;
+  if (typeof state.currentConfigId !== 'string' && state.currentConfigId !== null) return false;
+  if (!Array.isArray(state.configs)) return false;
+  
+  return state.configs.every(config => 
+    typeof config === 'object' && 
+    config !== null &&
+    typeof config.id === 'string' &&
+    typeof config.name === 'string' &&
+    Array.isArray(config.sets) &&
+    config.sets.every(set => 
+      typeof set === 'object' &&
+      set !== null &&
+      typeof set.name === 'string' &&
+      typeof set.preparation === 'number' &&
+      typeof set.repetitions === 'number' &&
+      Array.isArray(set.intervals) &&
+      set.intervals.every(interval =>
+        typeof interval === 'object' &&
+        interval !== null &&
+        typeof interval.name === 'string' &&
+        typeof interval.duration === 'number' &&
+        typeof interval.endSound === 'string'
+      )
+    )
+  );
+}
+
 export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [state, setState] = useState<WorkoutState>({
     currentConfigId: null,
     configs: [],
   });
 
-  // Load configurations from localStorage on mount
   useEffect(() => {
     const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
     if (stored) {
-      setState(JSON.parse(stored));
+      try {
+        const parsedState = JSON.parse(stored);
+        if (isValidWorkoutState(parsedState)) {
+          setState(parsedState);
+        } else {
+          console.error('Invalid stored workout state format');
+        }
+      } catch (error) {
+        console.error('Error parsing stored workout state:', error);
+      }
     }
   }, []);
 

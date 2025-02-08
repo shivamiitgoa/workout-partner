@@ -3,7 +3,7 @@ import { DEFAULT_SETTINGS, isValidSettings, Settings as SettingsType, STORAGE_KE
 
 export const Settings: React.FC = () => {
   const [isOpen, setIsOpen] = useState(false);
-  const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
+  const [, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
   const [tempSettings, setTempSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
 
   useEffect(() => {
