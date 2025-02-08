@@ -1,5 +1,6 @@
 "use client";
 
+import { saveAs } from 'file-saver';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { WorkoutConfig, WorkoutState } from './types';
 
@@ -12,9 +13,30 @@ interface WorkoutContextType {
   updateConfig: (config: WorkoutConfig) => void;
   deleteConfig: (id: string) => void;
   setCurrentConfig: (id: string) => void;
+  exportWorkouts: () => void;
+  importWorkouts: (file: File) => Promise<void>;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
+
+interface ExportedData {
+  version: string;
+  timestamp: string;
+  data: WorkoutState;
+}
+
+function isExportedData(value: unknown): value is ExportedData {
+  if (typeof value !== 'object' || value === null) return false;
+  
+  const data = value as Partial<ExportedData>;
+  return (
+    typeof data.version === 'string' &&
+    typeof data.timestamp === 'string' &&
+    typeof data.data === 'object' &&
+    data.data !== null &&
+    isValidWorkoutState(data.data)
+  );
+}
 
 function isValidWorkoutState(value: unknown): value is WorkoutState {
   if (typeof value !== 'object' || value === null) return false;
@@ -109,6 +131,43 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
   const currentConfig = state.configs.find(c => c.id === state.currentConfigId) || null;
 
+  const exportWorkouts = () => {
+    const exportData = {
+      version: '1.0',
+      timestamp: new Date().toISOString(),
+      data: state
+    };
+    
+    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+    saveAs(blob, `workout-configurations-${new Date().toISOString()}.json`);
+  };
+
+  const importWorkouts = async (file: File) => {
+    try {
+      const text = await file.text();
+      const importedData = JSON.parse(text);
+      
+      // Validate the imported data
+      if (!isExportedData(importedData)) {
+        throw new Error('Invalid workout data format');
+      }
+
+      // Merge existing workouts with imported ones, avoiding duplicates
+      const existingIds = new Set(state.configs.map(config => config.id));
+      const newConfigs = importedData.data.configs.map((config: WorkoutConfig) => 
+        existingIds.has(config.id) ? { ...config, id: crypto.randomUUID() } : config
+      );
+
+      setState(prev => ({
+        ...prev,
+        configs: [...prev.configs, ...newConfigs]
+      }));
+    } catch (error) {
+      console.error('Error importing workouts:', error);
+      throw error;
+    }
+  };
+
   return (
     <WorkoutContext.Provider
       value={{
@@ -118,6 +177,8 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         updateConfig,
         deleteConfig,
         setCurrentConfig,
+        exportWorkouts,
+        importWorkouts,
       }}
     >
       {children}

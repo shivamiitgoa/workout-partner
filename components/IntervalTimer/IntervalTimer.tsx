@@ -1,5 +1,6 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
+import { ImportExport } from './ImportExport'
 import { ConfigurationForm } from "./ConfigurationForm"
 import { ActiveInterval, SoundType, WorkoutConfig } from "./types"
 import { useWorkout } from "./WorkoutContext"
@@ -298,18 +299,21 @@ export const IntervalTimer: React.FC = () => {
         {!showForm ? (
           <>
             <div className="mb-6 flex items-center justify-between">
-              <select
-                value={currentConfig?.id || ""}
-                onChange={(e) => setCurrentConfig(e.target.value)}
-                className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
-              >
-                <option value="">Select Workout</option>
-                {configs.map((config) => (
-                  <option key={config.id} value={config.id}>
-                    {config.name}
-                  </option>
-                ))}
-              </select>
+              <div className="flex items-center gap-4">
+                <select
+                  value={currentConfig?.id || ""}
+                  onChange={(e) => setCurrentConfig(e.target.value)}
+                  className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                >
+                  <option value="">Select Workout</option>
+                  {configs.map((config) => (
+                    <option key={config.id} value={config.id}>
+                      {config.name}
+                    </option>
+                  ))}
+                </select>
+                <ImportExport />
+              </div>
               <div className="flex gap-2">
                 {currentConfig && (
                   <button
