@@ -28,7 +28,7 @@ const DEFAULT_SET: WorkoutSet = {
 };
 
 export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, initialConfig }) => {
-  const { addConfig, updateConfig } = useWorkout();
+  const { addConfig, updateConfig, deleteConfig } = useWorkout();
   const [name, setName] = useState(initialConfig?.name || '');
   const [sets, setSets] = useState<WorkoutSet[]>(initialConfig?.sets || [{ ...DEFAULT_SET }]);
 
@@ -51,6 +51,14 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
       addConfig(config);
     }
     onClose();
+  };
+
+  const handleDelete = () => {
+    if (!initialConfig) return;
+    if (window.confirm('Are you sure you want to delete this workout?')) {
+      deleteConfig(initialConfig.id);
+      onClose();
+    }
   };
 
   const addSet = () => {
@@ -275,6 +283,15 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
           >
             Cancel
           </button>
+          {initialConfig && (
+            <button
+              type="button"
+              onClick={handleDelete}
+              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+            >
+              Delete
+            </button>
+          )}
           <button
             type="submit"
             className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
