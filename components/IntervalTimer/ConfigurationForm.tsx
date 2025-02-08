@@ -27,10 +27,33 @@ const DEFAULT_SET: WorkoutSet = {
   repetitions: 3,
 };
 
+// Helper function to create a deep copy of a set
+const deepCopySet = (set: WorkoutSet): WorkoutSet => ({
+  name: set.name,
+  preparation: set.preparation,
+  prepEndSound: set.prepEndSound,
+  intervals: set.intervals.map(interval => ({
+    name: interval.name,
+    duration: interval.duration,
+    endSound: interval.endSound,
+  })),
+  repetitions: set.repetitions,
+});
+
+const NEW_INTERVAL: WorkoutInterval = {
+  name: 'New Interval',
+  duration: 30,
+  endSound: 'no_beep' as SoundType,
+};
+
 export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, initialConfig }) => {
   const { addConfig, updateConfig, deleteConfig } = useWorkout();
   const [name, setName] = useState(initialConfig?.name || '');
-  const [sets, setSets] = useState<WorkoutSet[]>(initialConfig?.sets || [{ ...DEFAULT_SET }]);
+  const [sets, setSets] = useState<WorkoutSet[]>(
+    initialConfig?.sets 
+      ? initialConfig.sets.map(deepCopySet)
+      : [deepCopySet(DEFAULT_SET)]
+  );
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +85,13 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
   };
 
   const addSet = () => {
-    setSets([...sets, { ...DEFAULT_SET, name: `Set ${sets.length + 1}` }]);
+    setSets([
+      ...sets,
+      deepCopySet({ 
+        ...DEFAULT_SET, 
+        name: `Set ${sets.length + 1}` 
+      })
+    ]);
   };
 
   const removeSet = (setIndex: number) => {
@@ -70,63 +99,59 @@ export const ConfigurationForm: React.FC<ConfigurationFormProps> = ({ onClose, i
   };
 
   const updateSet = (setIndex: number, field: keyof WorkoutSet, value: string | number) => {
-    const newSets = [...sets];
-    const currentSet = newSets[setIndex];
-    if (currentSet) {
-      let parsedValue: string | number = value;
-      if (field === 'preparation' || field === 'repetitions') {
-        const parsed = parseInt(value.toString());
-        parsedValue = isNaN(parsed) ? 0 : parsed;
-      }
-      newSets[setIndex] = {
-        ...currentSet,
-        [field]: parsedValue,
-      };
-      setSets(newSets);
-    }
+    const newSets = sets.map((set, i) => 
+      i === setIndex
+        ? { ...set, [field]: value }
+        : set
+    );
+    setSets(newSets);
   };
 
   const addInterval = (setIndex: number) => {
-    const newSets = [...sets];
-    const currentSet = newSets[setIndex];
-    if (currentSet) {
-      currentSet.intervals = [
-        ...currentSet.intervals,
-        { name: 'New Interval', duration: 30, endSound: 'no_beep' }
-      ];
-      setSets(newSets);
-    }
+    const newSets = sets.map((set, i) => {
+      if (i !== setIndex) return set;
+      return {
+        ...set,
+        intervals: [
+          ...set.intervals,
+          { ...NEW_INTERVAL }
+        ]
+      };
+    });
+    setSets(newSets);
   };
 
   const updateInterval = (setIndex: number, intervalIndex: number, field: keyof WorkoutInterval, value: string | number) => {
-    const newSets = [...sets];
-    const currentSet = newSets[setIndex];
-    if (!currentSet) return;
-
-    const currentInterval = currentSet.intervals[intervalIndex];
-    if (!currentInterval) return;
-
-    let parsedValue: string | number = value;
-    if (field === 'duration') {
-      const parsed = parseInt(value.toString());
-      parsedValue = isNaN(parsed) ? 0 : parsed;
-    }
-
-    currentSet.intervals[intervalIndex] = {
-      ...currentInterval,
-      [field]: parsedValue,
-    };
-
+    const newSets = sets.map((set, i) => {
+      if (i !== setIndex) return set;
+      
+      const newIntervals = set.intervals.map((interval, j) => {
+        if (j !== intervalIndex) return interval;
+        
+        let parsedValue: string | number = value;
+        if (field === 'duration') {
+          const parsed = parseInt(value.toString());
+          parsedValue = isNaN(parsed) ? 0 : parsed;
+        }
+        
+        return { ...interval, [field]: parsedValue };
+      });
+      
+      return { ...set, intervals: newIntervals };
+    });
+    
     setSets(newSets);
   };
 
   const removeInterval = (setIndex: number, intervalIndex: number) => {
-    const newSets = [...sets];
-    const currentSet = newSets[setIndex];
-    if (currentSet) {
-      currentSet.intervals = currentSet.intervals.filter((_, i) => i !== intervalIndex);
-      setSets(newSets);
-    }
+    const newSets = sets.map((set, i) => {
+      if (i !== setIndex) return set;
+      return {
+        ...set,
+        intervals: set.intervals.filter((_, j) => j !== intervalIndex)
+      };
+    });
+    setSets(newSets);
   };
 
   return (
