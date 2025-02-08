@@ -25,7 +25,10 @@ export default function Web() {
   return (
     <>
       <section className="bg-white dark:bg-gray-900 border border-red-500">
-        <div className="fixed left-0 top-0 h-screen w-1/3 border-r border-gray-200 dark:border-gray-700">
+        <div className="fixed left-0 top-0 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
+          <IntervalTimer />
+        </div>
+        <div className="fixed left-0 top-1/2 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
           <iframe 
             src="https://www.youtube.com/embed/videoseries?list=PLdxbvvtBD8SY1x2cXupdfnX2P_V5iFQ5T"
             className="h-full w-full"
@@ -33,10 +36,7 @@ export default function Web() {
             allowFullScreen
           />
         </div>
-        <div className="fixed left-1/3 top-0 h-screen w-1/3">
-          <IntervalTimer />
-        </div>
-        <div className="fixed right-0 top-0 h-screen w-1/3">
+        <div className="fixed right-0 top-0 h-screen w-1/2">
           <iframe 
             src="https://docs.google.com/document/d/160SCUKvbiIrDB2Jk5yKusLg5TaLUXVuzExqfGMhOqE4/edit?tab=t.0"
             className="h-full w-full"
