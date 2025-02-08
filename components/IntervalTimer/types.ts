@@ -1,14 +1,23 @@
+export type SoundType = 'no_beep' | 'one_beep' | 'two_beeps' | 'three_beeps';
+
 export interface WorkoutInterval {
   name: string;
   duration: number; // in seconds
+  endSound: SoundType;
+}
+
+export interface WorkoutSet {
+  name: string;
+  preparation: number; // in seconds
+  prepEndSound: SoundType;
+  intervals: WorkoutInterval[];
+  repetitions: number;
 }
 
 export interface WorkoutConfig {
   id: string;
   name: string;
-  preparation: number; // in seconds
-  intervals: WorkoutInterval[];
-  repetitions: number;
+  sets: WorkoutSet[];
 }
 
 export interface WorkoutState {
@@ -27,4 +36,6 @@ export interface ActiveInterval {
   totalRounds: number;
   currentInterval: number;
   totalIntervals: number;
+  currentSet: number;
+  totalSets: number;
 } 
