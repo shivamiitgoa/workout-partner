@@ -4,7 +4,7 @@ import { Button } from "components/Button/Button"
 import { LP_GRID_ITEMS } from "lp-items"
 
 export const metadata: Metadata = {
-  title: "Next.js Enterprise Boilerplate",
+  title: "Workout Partner",
   twitter: {
     card: "summary_large_image",
   },
@@ -23,7 +23,22 @@ export const metadata: Metadata = {
 export default function Web() {
   return (
     <>
-      <section className="bg-white dark:bg-gray-900">
+      <section className="bg-white dark:bg-gray-900 border border-red-500">
+        <div className="fixed left-0 top-0 h-screen w-1/2 border-r border-gray-200 dark:border-gray-700">
+          <iframe 
+            src="https://www.youtube.com/embed/videoseries?list=PLdxbvvtBD8SY1x2cXupdfnX2P_V5iFQ5T"
+            className="h-full w-full"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          />
+        </div>
+        <div className="fixed right-0 top-0 h-screen w-1/2">
+          <iframe 
+            src="https://docs.google.com/document/d/160SCUKvbiIrDB2Jk5yKusLg5TaLUXVuzExqfGMhOqE4/edit?tab=t.0"
+            className="h-full w-full"
+            allow="clipboard-write"
+          />
+        </div>
         <div className="mx-auto grid max-w-(--breakpoint-xl) px-4 py-8 text-center lg:py-16">
           <div className="mx-auto place-self-center">
             <h1 className="mb-4 max-w-2xl text-4xl leading-none font-extrabold tracking-tight md:text-5xl xl:text-6xl dark:text-white">
