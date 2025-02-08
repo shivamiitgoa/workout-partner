@@ -1,15 +1,14 @@
 "use client"
 import React, { useEffect, useRef, useState } from "react"
-import { ImportExport } from './ImportExport'
 import { ConfigurationForm } from "./ConfigurationForm"
+import { ImportExport } from "./ImportExport"
 import { ActiveInterval, SoundType, WorkoutConfig } from "./types"
 import { useWorkout } from "./WorkoutContext"
 
 const BEEP_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
 
 const playBeepSequence = async (count: number) => {
-  for (let i = 0; i < count; i++) {
-    await new Promise((resolve) => setTimeout(resolve, i * 500))
+  const playBeep = async () => {
     const audio = new Audio(BEEP_SOUND_URL)
     try {
       await audio.play()
@@ -17,8 +16,16 @@ const playBeepSequence = async (count: number) => {
       console.error("Error playing sound:", error)
     }
   }
-}
 
+  // Play beeps with a 200ms gap between them
+  for (let i = 0; i < count; i++) {
+    await playBeep()
+    if (i < count - 1) {
+      // Don't wait after the last beep
+      await new Promise((resolve) => setTimeout(resolve, 200))
+    }
+  }
+}
 
 export const IntervalTimer: React.FC = () => {
   const { configs, currentConfig, setCurrentConfig } = useWorkout()
@@ -34,12 +41,12 @@ export const IntervalTimer: React.FC = () => {
     config: WorkoutConfig,
     current: ActiveInterval | null = null
   ): ActiveInterval | null => {
-    if (!config.sets.length) return null;
+    if (!config.sets.length) return null
 
     if (!current) {
       // Start with preparation of first set
-      const firstSet = config.sets[0];
-      if (!firstSet) return null;
+      const firstSet = config.sets[0]
+      if (!firstSet) return null
 
       return {
         type: "preparation",
@@ -55,13 +62,13 @@ export const IntervalTimer: React.FC = () => {
       }
     }
 
-    const currentSet = config.sets[current.currentSet - 1];
-    if (!currentSet) return null;
+    const currentSet = config.sets[current.currentSet - 1]
+    if (!currentSet) return null
 
     if (current.type === "preparation") {
       // Move to first interval of the set
-      const interval = currentSet.intervals[0];
-      if (!interval) return null;
+      const interval = currentSet.intervals[0]
+      if (!interval) return null
       return {
         type: "work",
         name: interval.name,
@@ -77,19 +84,19 @@ export const IntervalTimer: React.FC = () => {
     }
 
     // Move to next interval or round
-    const nextIntervalIndex = current.currentInterval % currentSet.intervals.length;
-    const completedRound = nextIntervalIndex === 0;
-    const nextRound = completedRound ? current.currentRound + 1 : current.currentRound;
+    const nextIntervalIndex = current.currentInterval % currentSet.intervals.length
+    const completedRound = nextIntervalIndex === 0
+    const nextRound = completedRound ? current.currentRound + 1 : current.currentRound
 
     if (nextRound > currentSet.repetitions) {
       // Move to next set
-      const nextSetIndex = current.currentSet;
+      const nextSetIndex = current.currentSet
       if (nextSetIndex >= config.sets.length) {
-        return null; // Workout complete
+        return null // Workout complete
       }
-      
-      const nextSet = config.sets[nextSetIndex];
-      if (!nextSet) return null;
+
+      const nextSet = config.sets[nextSetIndex]
+      if (!nextSet) return null
 
       return {
         type: "preparation",
@@ -105,8 +112,8 @@ export const IntervalTimer: React.FC = () => {
       }
     }
 
-    const interval = currentSet.intervals[nextIntervalIndex];
-    if (!interval) return null;
+    const interval = currentSet.intervals[nextIntervalIndex]
+    if (!interval) return null
     return {
       type: "work",
       name: interval.name,
@@ -125,173 +132,211 @@ export const IntervalTimer: React.FC = () => {
     if (isRunning && !isPaused && currentConfig) {
       intervalRef.current = setInterval(() => {
         setActiveInterval((prev) => {
-          if (!prev) return null;
+          if (!prev) return null
 
-          const currentSet = currentConfig.sets[prev.currentSet - 1];
-          if (!currentSet) return null;
+          const currentSet = currentConfig.sets[prev.currentSet - 1]
+          if (!currentSet) return null
 
           // Get the sound type for the current interval
-          let soundType: SoundType = 'no_beep';
+          let soundType: SoundType = "no_beep"
           if (prev.type === "preparation") {
-            soundType = currentSet.prepEndSound;
+            soundType = currentSet.prepEndSound
           } else {
-            const currentInterval = currentSet.intervals[prev.currentInterval - 1];
+            const currentInterval = currentSet.intervals[prev.currentInterval - 1]
             if (currentInterval) {
-              soundType = currentInterval.endSound;
+              soundType = currentInterval.endSound
             }
           }
 
-          // Play beeps at specific times based on sound type
-          if (prev.timeLeft === 3 && soundType === 'three_beeps') {
-            playBeepSequence(1);
-          } else if (prev.timeLeft === 2 && soundType === 'three_beeps') {
-            playBeepSequence(1);
-          } else if (prev.timeLeft === 1) {
-            if (soundType === 'three_beeps' || soundType === 'two_beeps') {
-              playBeepSequence(1);
-            }
-          }
-
-          if (prev.timeLeft <= 1) {
-            // Play final beep for all sound types except 'no_beep'
-            if (soundType !== 'no_beep') {
-              playBeepSequence(1);
+          // Handle countdown and end beeps
+          if (prev.timeLeft === 0) {
+            // Play final beeps based on sound type
+            switch (soundType) {
+              case "three_beeps":
+                playBeepSequence(1)
+                break
+              case "two_beeps":
+                playBeepSequence(1)
+                break
+              case "one_beep":
+                playBeepSequence(1)
+                break
             }
 
-            const next = calculateNextInterval(currentConfig, prev);
+            const next = calculateNextInterval(currentConfig, prev)
             if (!next) {
-              clearInterval(intervalRef.current!);
-              setIsRunning(false);
-              setIsPaused(false);
+              clearInterval(intervalRef.current!)
+              setIsRunning(false)
+              setIsPaused(false)
             }
-            return next;
+            return next
+          } else if (prev.timeLeft === 1) {
+            switch (soundType) {
+              case "three_beeps":
+                playBeepSequence(1)
+                break
+              case "two_beeps":
+                playBeepSequence(1)
+                break
+            }
+          } else if (prev.timeLeft === 2) {
+            switch (soundType) {
+              case "three_beeps":
+                playBeepSequence(1)
+                break
+            }
           }
 
-          return { ...prev, timeLeft: prev.timeLeft - 1 };
-        });
-      }, 1000);
+          return { ...prev, timeLeft: prev.timeLeft - 1 }
+        })
+      }, 1000)
     }
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
+        clearInterval(intervalRef.current)
       }
-    };
-  }, [isRunning, isPaused, currentConfig]);
+    }
+  }, [isRunning, isPaused, currentConfig])
 
   const handleStart = () => {
-    if (!currentConfig) return;
+    if (!currentConfig) return
 
     if (!isRunning && !isPaused) {
-      setActiveInterval(calculateNextInterval(currentConfig));
-      setIsRunning(true);
+      setActiveInterval(calculateNextInterval(currentConfig))
+      setIsRunning(true)
     } else if (isPaused) {
-      setIsPaused(false);
-      setIsRunning(true);
+      setIsPaused(false)
+      setIsRunning(true)
     } else {
-      setIsPaused(true);
+      setIsPaused(true)
     }
-  };
+  }
 
   const handleReset = () => {
     if (intervalRef.current) {
-      clearInterval(intervalRef.current);
+      clearInterval(intervalRef.current)
     }
-    setIsRunning(false);
-    setIsPaused(false);
-    setActiveInterval(null);
-  };
+    setIsRunning(false)
+    setIsPaused(false)
+    setActiveInterval(null)
+  }
 
   const handlePrevInterval = () => {
-    if (!currentConfig || !activeInterval) return;
+    if (!currentConfig || !activeInterval) return
 
-    const currentSet = currentConfig.sets[activeInterval.currentSet - 1];
-    if (!currentSet) return;
+    const currentSet = currentConfig.sets[activeInterval.currentSet - 1]
+    if (!currentSet) return
 
     // If we're more than 5 seconds into the current interval, go to start of current interval
     if (activeInterval.totalTime - activeInterval.timeLeft > 5) {
       setActiveInterval({
         ...activeInterval,
-        timeLeft: activeInterval.totalTime
-      });
-      return;
+        timeLeft: activeInterval.totalTime,
+      })
+      return
     }
 
     // Calculate previous interval
-    let prevInterval: ActiveInterval | null = null;
+    let prevInterval: ActiveInterval | null = null
 
-    if (activeInterval.type === "work" && activeInterval.currentInterval === 1) {
-      // Go to preparation phase if we're at first interval
-      prevInterval = {
-        type: "preparation",
-        name: "Get Ready",
-        timeLeft: currentSet.preparation,
-        totalTime: currentSet.preparation,
-        currentRound: activeInterval.currentRound,
-        totalRounds: currentSet.repetitions,
-        currentInterval: 0,
-        totalIntervals: currentSet.intervals.length,
-        currentSet: activeInterval.currentSet,
-        totalSets: activeInterval.totalSets
-      };
-    } else if (activeInterval.type === "preparation" && activeInterval.currentSet > 1) {
-      // Go to last interval of previous set
-      const prevSet = currentConfig.sets[activeInterval.currentSet - 2];
-      if (!prevSet) return;
+    if (activeInterval.type === "preparation") {
+      // If we're in preparation phase and not in first set, go to last interval of previous set
+      if (activeInterval.currentSet > 1) {
+        const prevSet = currentConfig.sets[activeInterval.currentSet - 2]
+        if (!prevSet) return
 
-      const lastInterval = prevSet.intervals[prevSet.intervals.length - 1];
-      if (!lastInterval) return;
+        const lastInterval = prevSet.intervals[prevSet.intervals.length - 1]
+        if (!lastInterval) return
 
-      prevInterval = {
-        type: "work",
-        name: lastInterval.name,
-        timeLeft: lastInterval.duration,
-        totalTime: lastInterval.duration,
-        currentRound: prevSet.repetitions,
-        totalRounds: prevSet.repetitions,
-        currentInterval: prevSet.intervals.length,
-        totalIntervals: prevSet.intervals.length,
-        currentSet: activeInterval.currentSet - 1,
-        totalSets: activeInterval.totalSets
-      };
+        prevInterval = {
+          type: "work",
+          name: lastInterval.name,
+          timeLeft: lastInterval.duration,
+          totalTime: lastInterval.duration,
+          currentRound: prevSet.repetitions,
+          totalRounds: prevSet.repetitions,
+          currentInterval: prevSet.intervals.length,
+          totalIntervals: prevSet.intervals.length,
+          currentSet: activeInterval.currentSet - 1,
+          totalSets: activeInterval.totalSets,
+        }
+      }
     } else if (activeInterval.type === "work") {
-      // Go to previous interval in current set
-      const prevIntervalIndex = activeInterval.currentInterval - 2;
-      const interval = currentSet.intervals[prevIntervalIndex];
-      if (!interval) return;
+      if (activeInterval.currentInterval === 1) {
+        // If we're at first interval of a round
+        if (activeInterval.currentRound > 1) {
+          // If not in first round, go to last interval of previous round
+          const lastIntervalIndex = currentSet.intervals.length - 1
+          const lastInterval = currentSet.intervals[lastIntervalIndex]
+          if (!lastInterval) return
 
-      prevInterval = {
-        type: "work",
-        name: interval.name,
-        timeLeft: interval.duration,
-        totalTime: interval.duration,
-        currentRound: activeInterval.currentRound,
-        totalRounds: currentSet.repetitions,
-        currentInterval: activeInterval.currentInterval - 1,
-        totalIntervals: currentSet.intervals.length,
-        currentSet: activeInterval.currentSet,
-        totalSets: activeInterval.totalSets
-      };
+          prevInterval = {
+            type: "work",
+            name: lastInterval.name,
+            timeLeft: lastInterval.duration,
+            totalTime: lastInterval.duration,
+            currentRound: activeInterval.currentRound - 1,
+            totalRounds: currentSet.repetitions,
+            currentInterval: currentSet.intervals.length,
+            totalIntervals: currentSet.intervals.length,
+            currentSet: activeInterval.currentSet,
+            totalSets: activeInterval.totalSets,
+          }
+        } else {
+          // If in first round, go to preparation phase
+          prevInterval = {
+            type: "preparation",
+            name: "Get Ready",
+            timeLeft: currentSet.preparation,
+            totalTime: currentSet.preparation,
+            currentRound: 1,
+            totalRounds: currentSet.repetitions,
+            currentInterval: 0,
+            totalIntervals: currentSet.intervals.length,
+            currentSet: activeInterval.currentSet,
+            totalSets: activeInterval.totalSets,
+          }
+        }
+      } else {
+        // Go to previous interval in current round
+        const prevIntervalIndex = activeInterval.currentInterval - 2
+        const interval = currentSet.intervals[prevIntervalIndex]
+        if (!interval) return
+
+        prevInterval = {
+          type: "work",
+          name: interval.name,
+          timeLeft: interval.duration,
+          totalTime: interval.duration,
+          currentRound: activeInterval.currentRound,
+          totalRounds: currentSet.repetitions,
+          currentInterval: activeInterval.currentInterval - 1,
+          totalIntervals: currentSet.intervals.length,
+          currentSet: activeInterval.currentSet,
+          totalSets: activeInterval.totalSets,
+        }
+      }
     }
 
     if (prevInterval) {
-      setActiveInterval(prevInterval);
+      setActiveInterval(prevInterval)
     }
-  };
+  }
 
   const handleNextInterval = () => {
-    if (!currentConfig || !activeInterval) return;
-    const next = calculateNextInterval(currentConfig, activeInterval);
+    if (!currentConfig || !activeInterval) return
+    const next = calculateNextInterval(currentConfig, activeInterval)
     if (next) {
-      setActiveInterval(next);
+      setActiveInterval(next)
     }
-  };
+  }
 
   const formatTime = (seconds: number): string => {
-    const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
-    return `${mins}:${secs.toString().padStart(2, "0")}`;
-  };
+    const mins = Math.floor(seconds / 60)
+    const secs = seconds % 60
+    return `${mins}:${secs.toString().padStart(2, "0")}`
+  }
 
   return (
     <div className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-br from-indigo-50 via-white to-purple-50 p-4">
@@ -303,7 +348,7 @@ export const IntervalTimer: React.FC = () => {
                 <select
                   value={currentConfig?.id || ""}
                   onChange={(e) => setCurrentConfig(e.target.value)}
-                  className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-gray-700 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
+                  className="rounded-lg border border-indigo-200 bg-white px-4 py-2 text-gray-700 shadow-sm focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 focus:outline-none"
                 >
                   <option value="">Select Workout</option>
                   {configs.map((config) => (
@@ -318,17 +363,17 @@ export const IntervalTimer: React.FC = () => {
                 {currentConfig && (
                   <button
                     onClick={() => {
-                      setEditingConfig(currentConfig);
-                      setShowForm(true);
+                      setEditingConfig(currentConfig)
+                      setShowForm(true)
                     }}
-                    className="rounded-lg bg-indigo-500 px-4 py-2 text-white shadow-sm transition-colors hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
+                    className="rounded-lg bg-indigo-500 px-4 py-2 text-white shadow-sm transition-colors hover:bg-indigo-600 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
                   >
                     Edit
                   </button>
                 )}
                 <button
                   onClick={() => setShowForm(true)}
-                  className="rounded-lg bg-green-500 px-4 py-2 text-white shadow-sm transition-colors hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  className="rounded-lg bg-green-500 px-4 py-2 text-white shadow-sm transition-colors hover:bg-green-600 focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:outline-none"
                 >
                   New Workout
                 </button>
@@ -344,7 +389,8 @@ export const IntervalTimer: React.FC = () => {
                     {activeInterval && (
                       <>
                         <div className="text-lg font-medium text-gray-600">
-                          Set {activeInterval.currentSet} of {activeInterval.totalSets} - Round {activeInterval.currentRound} of {activeInterval.totalRounds}
+                          Set {activeInterval.currentSet} of {activeInterval.totalSets} - Round{" "}
+                          {activeInterval.currentRound} of {activeInterval.totalRounds}
                         </div>
                         <div className="text-2xl font-semibold text-gray-800">{activeInterval.name}</div>
                         <div className="h-3 overflow-hidden rounded-full bg-gray-100">
@@ -362,33 +408,33 @@ export const IntervalTimer: React.FC = () => {
                   <div className="flex flex-col gap-4">
                     <button
                       onClick={handleStart}
-                      className={`w-full rounded-lg px-8 py-4 text-xl font-semibold text-white shadow-sm transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 ${
-                        isRunning && !isPaused 
-                          ? "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500" 
+                      className={`w-full rounded-lg px-8 py-4 text-xl font-semibold text-white shadow-sm transition-colors focus:ring-2 focus:ring-offset-2 focus:outline-none ${
+                        isRunning && !isPaused
+                          ? "bg-yellow-500 hover:bg-yellow-600 focus:ring-yellow-500"
                           : "bg-indigo-500 hover:bg-indigo-600 focus:ring-indigo-500"
                       }`}
                     >
                       {isRunning && !isPaused ? "Pause" : "Start"}
                     </button>
-                    
+
                     <div className="grid grid-cols-3 gap-2">
                       <button
                         onClick={handlePrevInterval}
                         disabled={!isRunning}
-                        className="rounded-lg bg-gray-600 px-4 py-3 text-2xl text-white shadow-sm transition-colors hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        className="rounded-lg bg-gray-600 px-4 py-3 text-2xl text-white shadow-sm transition-colors hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
                       >
                         ⏮️
                       </button>
                       <button
                         onClick={handleReset}
-                        className="rounded-lg bg-gray-600 px-4 py-3 text-white shadow-sm transition-colors hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        className="rounded-lg bg-gray-600 px-4 py-3 text-white shadow-sm transition-colors hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none"
                       >
                         Reset
                       </button>
                       <button
                         onClick={handleNextInterval}
                         disabled={!isRunning}
-                        className="rounded-lg bg-gray-600 px-4 py-3 text-2xl text-white shadow-sm transition-colors hover:bg-gray-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+                        className="rounded-lg bg-gray-600 px-4 py-3 text-2xl text-white shadow-sm transition-colors hover:bg-gray-700 focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50"
                       >
                         ⏭️
                       </button>
@@ -415,13 +461,13 @@ export const IntervalTimer: React.FC = () => {
         ) : (
           <ConfigurationForm
             onClose={() => {
-              setShowForm(false);
-              setEditingConfig(undefined);
+              setShowForm(false)
+              setEditingConfig(undefined)
             }}
             initialConfig={editingConfig}
           />
         )}
       </div>
     </div>
-  );
-};
+  )
+}
