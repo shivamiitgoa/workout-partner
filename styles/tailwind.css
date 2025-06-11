@@ -54,6 +54,17 @@
   .tab-content {
     will-change: transform, opacity;
   }
+
+  /* Floating button animations */
+  @media screen and (orientation: landscape) and (max-height: 500px) {
+    .floating-nav {
+      animation: fadeInDown 0.5s ease-out;
+    }
+    
+    .floating-button {
+      animation: fadeInScale 0.3s ease-out;
+    }
+  }
 }
 
 @layer utilities {
@@ -64,6 +75,29 @@
     }
     50% {
       opacity: 0.7;
+    }
+  }
+
+  /* Floating button animations */
+  @keyframes fadeInDown {
+    from {
+      opacity: 0;
+      transform: translate(-50%, -20px);
+    }
+    to {
+      opacity: 1;
+      transform: translate(-50%, 0);
+    }
+  }
+
+  @keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.8);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
     }
   }
 

@@ -5,27 +5,68 @@ import { ImportExport } from "./ImportExport"
 import { ActiveInterval, SoundType, WorkoutConfig } from "./types"
 import { useWorkout } from "./WorkoutContext"
 
-const BEEP_SOUND_URL = "https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3"
+// Create a global audio context for better iOS compatibility
+let audioContext: AudioContext | null = null;
+let audioBuffer: AudioBuffer | null = null;
 
-const playBeepSequence = async (count: number) => {
-  const playBeep = async () => {
-    const audio = new Audio(BEEP_SOUND_URL)
-    try {
-      await audio.play()
-    } catch (error) {
-      console.error("Error playing sound:", error)
+const initializeAudio = async (): Promise<boolean> => {
+  try {
+    if (!audioContext) {
+      audioContext = new (window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext)();
     }
-  }
+    
+    // Resume context if suspended (required for iOS)
+    if (audioContext.state === 'suspended') {
+      await audioContext.resume();
+    }
 
-  // Play beeps with a 200ms gap between them
+    // Generate a simple beep tone (more reliable than external files)
+    if (!audioBuffer) {
+      const sampleRate = audioContext.sampleRate;
+      const duration = 0.2; // 200ms beep
+      const frameCount = sampleRate * duration;
+      
+      audioBuffer = audioContext.createBuffer(1, frameCount, sampleRate);
+      const channelData = audioBuffer.getChannelData(0);
+      
+      // Generate a pleasant beep tone at 800Hz with fade in/out
+      for (let i = 0; i < frameCount; i++) {
+        const t = i / sampleRate;
+        const fadeIn = Math.min(1, t * 10); // Fade in over 0.1s
+        const fadeOut = Math.min(1, (duration - t) * 10); // Fade out over 0.1s
+        const envelope = fadeIn * fadeOut;
+        channelData[i] = Math.sin(2 * Math.PI * 800 * t) * 0.3 * envelope;
+      }
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Failed to initialize audio:", error);
+    return false;
+  }
+};
+
+const playBeep = async (): Promise<void> => {
+  if (!audioContext || !audioBuffer) return;
+  
+  try {
+    const source = audioContext.createBufferSource();
+    source.buffer = audioBuffer;
+    source.connect(audioContext.destination);
+    source.start();
+  } catch (error) {
+    console.error("Error playing beep:", error);
+  }
+};
+
+const playBeepSequence = async (count: number): Promise<void> => {
   for (let i = 0; i < count; i++) {
-    await playBeep()
+    await playBeep();
     if (i < count - 1) {
-      // Don't wait after the last beep
-      await new Promise((resolve) => setTimeout(resolve, 200))
+      await new Promise(resolve => setTimeout(resolve, 200));
     }
   }
-}
+};
 
 export const IntervalTimer: React.FC = () => {
   const { configs, currentConfig, setCurrentConfig } = useWorkout()
@@ -34,8 +75,21 @@ export const IntervalTimer: React.FC = () => {
   const [isRunning, setIsRunning] = useState(false)
   const [activeInterval, setActiveInterval] = useState<ActiveInterval | null>(null)
   const [isPaused, setIsPaused] = useState(false)
+  const [audioInitialized, setAudioInitialized] = useState(false)
 
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+
+  // Initialize audio on first user interaction
+  const handleUserInteraction = async () => {
+    if (!audioInitialized) {
+      const success = await initializeAudio();
+      if (success) {
+        setAudioInitialized(true);
+        // Play a test beep to confirm audio is working
+        await playBeep();
+      }
+    }
+  };
 
   const calculateNextInterval = (
     config: WorkoutConfig,
@@ -151,16 +205,18 @@ export const IntervalTimer: React.FC = () => {
           // Handle countdown and end beeps
           if (prev.timeLeft === 0) {
             // Play final beeps based on sound type
-            switch (soundType) {
-              case "three_beeps":
-                playBeepSequence(1)
-                break
-              case "two_beeps":
-                playBeepSequence(1)
-                break
-              case "one_beep":
-                playBeepSequence(1)
-                break
+            if (audioInitialized) {
+              switch (soundType) {
+                case "three_beeps":
+                  playBeepSequence(3)
+                  break
+                case "two_beeps":
+                  playBeepSequence(2)
+                  break
+                case "one_beep":
+                  playBeepSequence(1)
+                  break
+              }
             }
 
             const next = calculateNextInterval(currentConfig, prev)
@@ -170,19 +226,18 @@ export const IntervalTimer: React.FC = () => {
               setIsPaused(false)
             }
             return next
-          } else if (prev.timeLeft === 1) {
+          } else if (prev.timeLeft <= 3 && prev.timeLeft > 0 && audioInitialized) {
+            // Countdown beeps for last 3 seconds
+            const beepsToPlay = prev.timeLeft
             switch (soundType) {
               case "three_beeps":
-                playBeepSequence(1)
+                if (beepsToPlay <= 3) playBeep()
                 break
               case "two_beeps":
-                playBeepSequence(1)
+                if (beepsToPlay <= 2) playBeep()
                 break
-            }
-          } else if (prev.timeLeft === 2) {
-            switch (soundType) {
-              case "three_beeps":
-                playBeepSequence(1)
+              case "one_beep":
+                if (beepsToPlay === 1) playBeep()
                 break
             }
           }
@@ -197,10 +252,15 @@ export const IntervalTimer: React.FC = () => {
         clearInterval(intervalRef.current)
       }
     }
-  }, [isRunning, isPaused, currentConfig])
+  }, [isRunning, isPaused, currentConfig, audioInitialized])
 
-  const handleStart = () => {
+  const handleStart = async () => {
     if (!currentConfig) return
+
+    // Initialize audio on first interaction
+    if (!audioInitialized) {
+      await handleUserInteraction();
+    }
 
     if (!isRunning && !isPaused) {
       setActiveInterval(calculateNextInterval(currentConfig))
@@ -262,7 +322,7 @@ export const IntervalTimer: React.FC = () => {
           totalSets: activeInterval.totalSets,
         }
       }
-    } else if (activeInterval.type === "work") {
+    } else {
       if (activeInterval.currentInterval === 1) {
         // If we're at first interval of a round
         if (activeInterval.currentRound > 1) {
@@ -379,6 +439,16 @@ export const IntervalTimer: React.FC = () => {
                 </button>
               </div>
             </div>
+
+            {!audioInitialized && (
+              <div className="mb-4 rounded-lg bg-yellow-50 border border-yellow-200 p-4">
+                <div className="flex items-center">
+                  <div className="text-yellow-800">
+                    🔊 <strong>Enable Sound:</strong> Click the Start button to enable workout sounds and beeps.
+                  </div>
+                </div>
+              </div>
+            )}
 
             {currentConfig && (
               <div className="flex flex-row items-center justify-between gap-8">

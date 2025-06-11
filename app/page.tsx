@@ -48,17 +48,64 @@ export default function Web() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Force landscape orientation on mobile
+  // Force landscape orientation and fullscreen on mobile
   useEffect(() => {
-    if (isMobile && 'screen' in window && 'orientation' in window.screen) {
-      try {
-        // @ts-expect-error - orientation API might not be fully typed
-        window.screen.orientation.lock('landscape').catch(() => {
-          // Silently fail if orientation lock is not supported
-        });
-      } catch {
-        // Silently fail if orientation API is not supported
+    if (isMobile) {
+      // Request fullscreen
+      const requestFullscreen = async () => {
+        try {
+          const elem = document.documentElement as HTMLElement & {
+            webkitRequestFullscreen?: () => Promise<void>;
+            msRequestFullscreen?: () => Promise<void>;
+          };
+          if (elem.requestFullscreen) {
+            await elem.requestFullscreen();
+          } else if (elem.webkitRequestFullscreen) {
+            await elem.webkitRequestFullscreen();
+          } else if (elem.msRequestFullscreen) {
+            await elem.msRequestFullscreen();
+          }
+        } catch {
+          console.log('Fullscreen not supported or denied');
+        }
+      };
+
+      // Lock orientation to landscape
+      if ('screen' in window && 'orientation' in window.screen) {
+        try {
+          // @ts-expect-error - orientation API might not be fully typed
+          window.screen.orientation.lock('landscape').catch(() => {
+            // Silently fail if orientation lock is not supported
+          });
+        } catch {
+          // Silently fail if orientation API is not supported
+        }
       }
+
+      // Hide address bar on mobile Safari
+      const hideAddressBar = () => {
+        window.scrollTo(0, 1);
+        setTimeout(() => window.scrollTo(0, 0), 0);
+      };
+
+      // Request fullscreen on first user interaction
+      const handleFirstInteraction = () => {
+        requestFullscreen();
+        hideAddressBar();
+        document.removeEventListener('touchstart', handleFirstInteraction);
+        document.removeEventListener('click', handleFirstInteraction);
+      };
+
+      document.addEventListener('touchstart', handleFirstInteraction);
+      document.addEventListener('click', handleFirstInteraction);
+
+      // Initial hide address bar attempt
+      setTimeout(hideAddressBar, 1000);
+
+      return () => {
+        document.removeEventListener('touchstart', handleFirstInteraction);
+        document.removeEventListener('click', handleFirstInteraction);
+      };
     }
   }, [isMobile]);
 
@@ -118,35 +165,66 @@ export default function Web() {
               </div>
               <div className="mt-4 text-xs opacity-50">
                 • Swipe left/right to switch between Timer, Music, and Workout<br/>
-                • Tap the tabs at the top to navigate<br/>
-                • Full-screen landscape mode for best experience
+                • Tap the floating buttons at the top to navigate<br/>
+                • Use the fullscreen button (⛶) in the top right<br/>
+                • Add to Home Screen for app-like experience<br/>
+                • Enable sound by starting the timer
               </div>
             </div>
           </div>
 
           {/* Mobile landscape layout */}
-          <div className="landscape:flex landscape:flex-col landscape:h-full portrait:hidden">
-            {/* Tab Navigation */}
-            <div className="flex bg-white shadow-lg z-20 border-b border-gray-200">
+          <div className="landscape:h-full portrait:hidden relative">
+            {/* Floating Navigation Buttons */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 flex gap-2 floating-nav">
               {tabs.map((tab) => (
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`flex-1 py-3 px-2 text-center font-medium transition-all duration-200 border-b-4 active:scale-95 ${
+                  className={`w-12 h-12 rounded-full shadow-lg transition-all duration-200 active:scale-95 floating-button ${
                     activeTab === tab.id
-                      ? 'bg-indigo-50 text-indigo-600 border-indigo-500 shadow-sm'
-                      : 'bg-white text-gray-600 border-transparent hover:bg-gray-50 hover:text-gray-800'
+                      ? 'bg-indigo-500 text-white shadow-indigo-200'
+                      : 'bg-white/90 backdrop-blur text-gray-600 hover:bg-white hover:shadow-xl'
                   }`}
                 >
-                  <div className="text-lg mb-1">{tab.icon}</div>
-                  <div className="text-xs font-semibold">{tab.label.split(' ')[1]}</div>
+                  <div className="text-xl">{tab.icon}</div>
                 </button>
               ))}
             </div>
 
-            {/* Tab Content */}
+            {/* Floating Fullscreen Button */}
+            <button
+              onClick={() => {
+                const elem = document.documentElement as HTMLElement & {
+                  webkitRequestFullscreen?: () => Promise<void>;
+                };
+                const doc = document as Document & {
+                  webkitExitFullscreen?: () => Promise<void>;
+                };
+                if (!document.fullscreenElement) {
+                  if (elem.requestFullscreen) {
+                    elem.requestFullscreen();
+                  } else if (elem.webkitRequestFullscreen) {
+                    elem.webkitRequestFullscreen();
+                  }
+                } else {
+                  if (doc.exitFullscreen) {
+                    doc.exitFullscreen();
+                  } else if (doc.webkitExitFullscreen) {
+                    doc.webkitExitFullscreen();
+                  }
+                }
+              }}
+              className="absolute top-4 right-4 z-30 w-10 h-10 rounded-full bg-white/90 backdrop-blur text-gray-500 hover:text-gray-700 hover:bg-white shadow-lg transition-all duration-200 flex items-center justify-center floating-button"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <path d="M7 14H5v5h5v-2H7v-3zm-2-4h2V7h3V5H5v5zm12 7h-3v2h5v-5h-2v3zM14 5v2h3v3h2V5h-5z"/>
+              </svg>
+            </button>
+
+            {/* Tab Content - Full Height */}
             <div 
-              className="flex-1 relative overflow-hidden hide-scrollbar"
+              className="h-full relative overflow-hidden hide-scrollbar"
               onTouchStart={handleTouchStart}
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
@@ -193,13 +271,13 @@ export default function Web() {
                 />
               </div>
 
-              {/* Swipe indicators */}
-              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2 z-10">
-                                 {tabs.map((tab) => (
+                            {/* Swipe indicators - smaller and more subtle */}
+              <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-1 z-10">
+                {tabs.map((tab) => (
                   <div
                     key={tab.id}
-                    className={`w-2 h-2 rounded-full transition-all duration-200 ${
-                      activeTab === tab.id ? 'bg-indigo-500' : 'bg-gray-300'
+                    className={`w-1.5 h-1.5 rounded-full transition-all duration-200 ${
+                      activeTab === tab.id ? 'bg-white/80' : 'bg-white/30'
                     }`}
                   />
                 ))}
