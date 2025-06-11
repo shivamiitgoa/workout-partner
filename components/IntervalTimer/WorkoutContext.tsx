@@ -3,6 +3,7 @@
 import { saveAs } from 'file-saver';
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { WorkoutConfig, WorkoutState } from './types';
+import { DEFAULT_SETTINGS, isValidSettings, STORAGE_KEY as SETTINGS_STORAGE_KEY } from '../Settings/types';
 
 const LOCAL_STORAGE_KEY = 'workout_configurations';
 
@@ -15,6 +16,7 @@ interface WorkoutContextType {
   setCurrentConfig: (id: string) => void;
   exportWorkouts: () => void;
   importWorkouts: (file: File) => Promise<void>;
+  loadDefaultConfig: () => Promise<void>;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | null>(null);
@@ -74,27 +76,77 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
     currentConfigId: null,
     configs: [],
   });
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Function to load default workout configuration
+  const loadDefaultConfig = async () => {
+    try {
+      // Get settings from localStorage or use defaults
+      let defaultWorkoutConfigUrl = DEFAULT_SETTINGS.defaultWorkoutConfigUrl;
+      
+      const settingsStored = localStorage.getItem(SETTINGS_STORAGE_KEY);
+      if (settingsStored) {
+        try {
+          const parsedSettings = JSON.parse(settingsStored);
+          if (isValidSettings(parsedSettings)) {
+            defaultWorkoutConfigUrl = parsedSettings.defaultWorkoutConfigUrl;
+          }
+        } catch (error) {
+          console.error('Error parsing settings:', error);
+        }
+      }
+
+      const response = await fetch(defaultWorkoutConfigUrl);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch default workout config: ${response.statusText}`);
+      }
+      
+      const defaultConfigData = await response.json();
+      
+      // Validate the imported data
+      if (!isExportedData(defaultConfigData)) {
+        throw new Error('Invalid default workout data format');
+      }
+
+      setState(defaultConfigData.data);
+    } catch (error) {
+      console.error('Error loading default workout configuration:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsedState = JSON.parse(stored);
-        if (isValidWorkoutState(parsedState)) {
-          setState(parsedState);
-        } else {
-          console.error('Invalid stored workout state format');
+    const loadInitialData = async () => {
+      const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+      if (stored) {
+        try {
+          const parsedState = JSON.parse(stored);
+          if (isValidWorkoutState(parsedState)) {
+            setState(parsedState);
+            setIsLoading(false);
+            return;
+          } else {
+            console.error('Invalid stored workout state format');
+          }
+        } catch (error) {
+          console.error('Error parsing stored workout state:', error);
         }
-      } catch (error) {
-        console.error('Error parsing stored workout state:', error);
       }
-    }
+      
+      // No valid stored data, load default configuration
+      await loadDefaultConfig();
+    };
+
+    loadInitialData();
   }, []);
 
-  // Save configurations to localStorage whenever they change
+  // Save configurations to localStorage whenever they change (but not on initial load)
   useEffect(() => {
-    localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
-  }, [state]);
+    if (!isLoading) {
+      localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(state));
+    }
+  }, [state, isLoading]);
 
   const addConfig = (config: Omit<WorkoutConfig, 'id'>) => {
     const newConfig: WorkoutConfig = {
@@ -179,6 +231,7 @@ export const WorkoutProvider: React.FC<{ children: React.ReactNode }> = ({ child
         setCurrentConfig,
         exportWorkouts,
         importWorkouts,
+        loadDefaultConfig,
       }}
     >
       {children}

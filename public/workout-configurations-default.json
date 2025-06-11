@@ -1,0 +1,97 @@
+{
+  "version": "1.0",
+  "timestamp": "2025-06-11T12:29:52.257Z",
+  "data": {
+    "currentConfigId": "fcfdb082-f826-4634-8b0b-b9a5a36d390c",
+    "configs": [
+      {
+        "name": "Workout",
+        "sets": [
+          {
+            "name": "Warmup",
+            "preparation": 10,
+            "prepEndSound": "three_beeps",
+            "intervals": [
+              {
+                "name": "First Part",
+                "duration": 30,
+                "endSound": "two_beeps"
+              },
+              {
+                "name": "Second Part",
+                "duration": 30,
+                "endSound": "three_beeps"
+              }
+            ],
+            "repetitions": 5
+          },
+          {
+            "name": "Workout 1",
+            "preparation": 30,
+            "prepEndSound": "three_beeps",
+            "intervals": [
+              {
+                "name": "First Part",
+                "duration": 22,
+                "endSound": "two_beeps"
+              },
+              {
+                "name": "Second Part",
+                "duration": 23,
+                "endSound": "three_beeps"
+              },
+              {
+                "name": "Rest",
+                "duration": 15,
+                "endSound": "three_beeps"
+              }
+            ],
+            "repetitions": 10
+          },
+          {
+            "name": "Workout 2",
+            "preparation": 30,
+            "prepEndSound": "three_beeps",
+            "intervals": [
+              {
+                "name": "First Part",
+                "duration": 22,
+                "endSound": "two_beeps"
+              },
+              {
+                "name": "Second Part",
+                "duration": 23,
+                "endSound": "three_beeps"
+              },
+              {
+                "name": "Rest",
+                "duration": 15,
+                "endSound": "three_beeps"
+              }
+            ],
+            "repetitions": 10
+          },
+          {
+            "name": "Cool Down",
+            "preparation": 30,
+            "prepEndSound": "three_beeps",
+            "intervals": [
+              {
+                "name": "First Part",
+                "duration": 30,
+                "endSound": "two_beeps"
+              },
+              {
+                "name": "Second Part",
+                "duration": 30,
+                "endSound": "three_beeps"
+              }
+            ],
+            "repetitions": 5
+          }
+        ],
+        "id": "fcfdb082-f826-4634-8b0b-b9a5a36d390c"
+      }
+    ]
+  }
+}
