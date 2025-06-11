@@ -7,16 +7,42 @@ interface YouTubePlayerProps {
   className?: string;
 }
 
+interface YouTubePlayer {
+  setVolume: (volume: number) => void;
+  getVolume: () => number;
+  mute: () => void;
+  unMute: () => void;
+  isMuted: () => boolean;
+  destroy: () => void;
+}
+
+interface YouTubePlayerConstructor {
+  new (element: HTMLElement, config: YouTubePlayerConfig): YouTubePlayer;
+}
+
+interface YouTubePlayerConfig {
+  height: string;
+  width: string;
+  videoId?: string;
+  playerVars: Record<string, unknown>;
+  events: {
+    onReady: (event: { target: YouTubePlayer }) => void;
+    onError: (error: { data: number }) => void;
+  };
+}
+
 declare global {
   interface Window {
-    YT: any;
+    YT: {
+      Player: YouTubePlayerConstructor;
+    };
     onYouTubeIframeAPIReady: () => void;
   }
 }
 
 export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, className }) => {
   const playerRef = useRef<HTMLDivElement>(null);
-  const playerInstanceRef = useRef<any>(null);
+  const playerInstanceRef = useRef<YouTubePlayer | null>(null);
   const [volume, setVolume] = useState(50);
   const [isReady, setIsReady] = useState(false);
   const [showControls, setShowControls] = useState(true);
@@ -24,12 +50,12 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, classNam
   // Extract playlist ID from URL
   const getPlaylistId = (url: string): string | null => {
     const match = url.match(/[?&]list=([^&]+)/);
-    return match ? match[1] : null;
+    return match && match[1] ? match[1] : null;
   };
 
   const getVideoId = (url: string): string | null => {
     const match = url.match(/[?&]v=([^&]+)/);
-    return match ? match[1] : null;
+    return match && match[1] ? match[1] : null;
   };
 
   useEffect(() => {
@@ -64,7 +90,7 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, classNam
     const playlistId = getPlaylistId(videoUrl);
     const videoId = getVideoId(videoUrl);
 
-    const playerVars: any = {
+    const playerVars: Record<string, unknown> = {
       autoplay: 0,
       controls: 1,
       modestbranding: 1,
@@ -88,13 +114,13 @@ export const YouTubePlayer: React.FC<YouTubePlayerProps> = ({ videoUrl, classNam
         videoId: videoId || undefined,
         playerVars,
         events: {
-          onReady: (event: any) => {
+          onReady: (event: { target: YouTubePlayer }) => {
             setIsReady(true);
             // Set initial volume to 50%
             event.target.setVolume(50);
             setVolume(50);
           },
-          onError: (error: any) => {
+          onError: (error: { data: number }) => {
             console.error('YouTube Player Error:', error);
           },
         },
