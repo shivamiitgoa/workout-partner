@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react"
 import { IntervalTimer } from "components/IntervalTimer/IntervalTimer"
 import { Settings } from "components/Settings/Settings"
 import { DEFAULT_SETTINGS, isValidSettings, Settings as SettingsType, STORAGE_KEY } from "components/Settings/types"
+import { YouTubePlayer } from "components/YouTubePlayer/YouTubePlayer"
 
 type TabType = 'timer' | 'music' | 'workout';
 
@@ -248,11 +249,9 @@ export default function Web() {
                     : 'opacity-0 translate-x-full pointer-events-none'
                 }`}
               >
-                <iframe 
-                  src={settings.youtubeUrl}
-                  className="h-full w-full border-0"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
+                <YouTubePlayer
+                  videoUrl={settings.youtubeUrl}
+                  className="h-full w-full"
                 />
               </div>
 
@@ -302,11 +301,9 @@ export default function Web() {
           <IntervalTimer />
         </div>
         <div className="fixed left-0 top-1/2 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
-          <iframe 
-            src={settings.youtubeUrl}
+          <YouTubePlayer
+            videoUrl={settings.youtubeUrl}
             className="h-full w-full"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            allowFullScreen
           />
         </div>
         <div className="fixed right-0 top-0 h-screen w-1/2">

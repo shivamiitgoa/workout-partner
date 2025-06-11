@@ -20,22 +20,31 @@ const initializeAudio = async (): Promise<boolean> => {
       await audioContext.resume();
     }
 
-    // Generate a simple beep tone (more reliable than external files)
+    // Generate an attention-seeking beep tone that cuts through music
     if (!audioBuffer) {
       const sampleRate = audioContext.sampleRate;
-      const duration = 0.2; // 200ms beep
+      const duration = 0.4; // Longer 400ms beep for more attention
       const frameCount = sampleRate * duration;
       
       audioBuffer = audioContext.createBuffer(1, frameCount, sampleRate);
       const channelData = audioBuffer.getChannelData(0);
       
-      // Generate a pleasant beep tone at 800Hz with fade in/out
+      // Generate a powerful attention-seeking beep with multiple frequencies
       for (let i = 0; i < frameCount; i++) {
         const t = i / sampleRate;
-        const fadeIn = Math.min(1, t * 10); // Fade in over 0.1s
-        const fadeOut = Math.min(1, (duration - t) * 10); // Fade out over 0.1s
-        const envelope = fadeIn * fadeOut;
-        channelData[i] = Math.sin(2 * Math.PI * 800 * t) * 0.3 * envelope;
+        
+        // Sharp attack, slower decay envelope
+        const attack = t < 0.02 ? t / 0.02 : 1;
+        const decay = t > 0.1 ? Math.pow((duration - t) / (duration - 0.1), 0.5) : 1;
+        const envelope = attack * decay;
+        
+        // Multiple frequency components for more attention-grabbing sound
+        const freq1 = Math.sin(2 * Math.PI * 1000 * t); // Primary tone at 1000Hz
+        const freq2 = Math.sin(2 * Math.PI * 1500 * t) * 0.5; // Harmonic at 1500Hz
+        const freq3 = Math.sin(2 * Math.PI * 800 * t) * 0.3; // Sub-harmonic at 800Hz
+        
+        // Combine frequencies with higher amplitude (0.7 instead of 0.3)
+        channelData[i] = (freq1 + freq2 + freq3) * 0.7 * envelope;
       }
     }
     
