@@ -1,9 +1,10 @@
 import "styles/tailwind.css"
-import { Metadata } from "next"
+import { Metadata, Viewport } from "next"
 import { WorkoutProvider } from "components/IntervalTimer/WorkoutContext"
 
 export const metadata: Metadata = {
   title: "Workout Partner",
+  description: "Your personal workout companion with timer, music, and workout plans",
   twitter: {
     card: "summary_large_image",
   },
@@ -17,12 +18,31 @@ export const metadata: Metadata = {
       },
     ],
   },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Workout Partner",
+  },
+}
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+  viewportFit: "cover",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
-      <body>
+      <head>
+        <meta name="mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-capable" content="yes" />
+        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="theme-color" content="#6366f1" />
+      </head>
+      <body className="overflow-hidden">
         <WorkoutProvider>
           {children}
         </WorkoutProvider>
