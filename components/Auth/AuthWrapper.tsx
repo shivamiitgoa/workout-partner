@@ -1,8 +1,8 @@
 'use client'
 
-import { useAuth } from '../../contexts/AuthContext'
 import { LoginButton } from './LoginButton'
 import { UserProfile } from './UserProfile'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface AuthWrapperProps {
   className?: string

@@ -1,8 +1,8 @@
 'use client'
 
-import { useAuth } from '../../contexts/AuthContext'
-import { LoginButton } from './LoginButton'
 import { ReactNode } from 'react'
+import { LoginButton } from './LoginButton'
+import { useAuth } from '../../contexts/AuthContext'
 
 interface ProtectedRouteProps {
   children: ReactNode

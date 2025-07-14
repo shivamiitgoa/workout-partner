@@ -1,5 +1,6 @@
 'use client'
 
+import Image from 'next/image'
 import { useAuth } from '../../contexts/AuthContext'
 
 interface UserProfileProps {
@@ -23,9 +24,11 @@ export const UserProfile = ({ className = '' }: UserProfileProps) => {
     <div className={`flex items-center gap-3 ${className}`}>
       <div className="flex items-center gap-3 px-4 py-2 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
         {user.photoURL && (
-          <img
+          <Image
             src={user.photoURL}
             alt={user.displayName || 'User'}
+            width={32}
+            height={32}
             className="w-8 h-8 rounded-full"
           />
         )}

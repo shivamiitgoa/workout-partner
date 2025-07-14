@@ -1,11 +1,11 @@
 "use client"
 
 import { useEffect, useState } from "react"
+import { AuthWrapper, ProtectedRoute } from "components/Auth"
 import { IntervalTimer } from "components/IntervalTimer/IntervalTimer"
 import { Settings } from "components/Settings/Settings"
 import { DEFAULT_SETTINGS, isValidSettings, Settings as SettingsType, STORAGE_KEY } from "components/Settings/types"
 import { YouTubePlayer } from "components/YouTubePlayer/YouTubePlayer"
-import { AuthWrapper, ProtectedRoute } from "components/Auth"
 
 export default function Web() {
   const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
