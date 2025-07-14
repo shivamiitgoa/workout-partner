@@ -85,8 +85,12 @@ export const Settings: React.FC = () => {
                   onChange={(e) =>
                     setTempSettings({ ...tempSettings, youtubeUrl: e.target.value })
                   }
+                  placeholder="PLdxbvvtBD8SahRABv0it1KpIOrJSH_ORK or full YouTube URL"
                   className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-1 focus:ring-indigo-500"
                 />
+                <p className="mt-2 text-sm text-gray-500">
+                  Supports: Playlist ID only, full YouTube URLs, or embed URLs
+                </p>
               </div>
 
               <div>
