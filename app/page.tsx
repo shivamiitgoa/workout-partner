@@ -5,6 +5,7 @@ import { IntervalTimer } from "components/IntervalTimer/IntervalTimer"
 import { Settings } from "components/Settings/Settings"
 import { DEFAULT_SETTINGS, isValidSettings, Settings as SettingsType, STORAGE_KEY } from "components/Settings/types"
 import { YouTubePlayer } from "components/YouTubePlayer/YouTubePlayer"
+import { AuthWrapper, ProtectedRoute } from "components/Auth"
 
 export default function Web() {
   const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
@@ -24,7 +25,12 @@ export default function Web() {
   }, []);
 
   return (
-    <>
+    <ProtectedRoute>
+      {/* Auth wrapper for showing user profile or login */}
+      <div className="fixed top-4 right-4 z-50">
+        <AuthWrapper />
+      </div>
+      
       <section className="bg-white dark:bg-gray-900">
         <div className="fixed left-0 top-0 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
           <IntervalTimer />
@@ -44,6 +50,6 @@ export default function Web() {
         </div>
       </section>
       <Settings />
-    </>
+    </ProtectedRoute>
   )
 }
