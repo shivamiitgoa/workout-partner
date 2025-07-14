@@ -18,34 +18,18 @@ export const metadata: Metadata = {
       },
     ],
   },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "default",
-    title: "Workout Partner",
-  },
 }
 
 export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
-  maximumScale: 1,
-  userScalable: false,
-  viewportFit: "cover",
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
-        <meta name="mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Workout Partner" />
         <meta name="theme-color" content="#6366f1" />
-        <meta name="msapplication-navbutton-color" content="#6366f1" />
-        <meta name="apple-touch-fullscreen" content="yes" />
-        <link rel="manifest" href="/manifest.json" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="overflow-hidden">
         <WorkoutProvider>
