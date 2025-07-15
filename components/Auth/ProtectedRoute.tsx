@@ -24,14 +24,16 @@ export const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
     return (
       <div className="flex flex-col items-center justify-center min-h-screen bg-white dark:bg-gray-900 p-8">
         {fallback || (
-          <div className="text-center">
+          <div className="text-center max-w-md">
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               Authentication Required
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-8 max-w-md">
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
               Please sign in with your Google account to access your workout partner.
             </p>
-            <LoginButton />
+            <div className="flex justify-center">
+              <LoginButton />
+            </div>
           </div>
         )}
       </div>
