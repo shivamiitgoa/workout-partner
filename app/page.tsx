@@ -3,11 +3,13 @@
 import { useState } from "react"
 import { ProtectedRoute } from "components/Auth"
 import { Sidebar } from "components/Sidebar"
+import GamePage from "./game/page"
 import WorkoutPage from "./workout/page"
 import { useSidebar } from "../contexts/SidebarContext"
 
 const applications = {
-  workout: WorkoutPage
+  workout: WorkoutPage,
+  game: GamePage
   // Future applications will be added here
 }
 
