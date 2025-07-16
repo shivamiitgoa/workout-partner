@@ -23,39 +23,8 @@ interface SidebarProviderProps {
   children: ReactNode
 }
 
-const SIDEBAR_STORAGE_KEY = 'super-app-sidebar-expanded'
-
 export const SidebarProvider = ({ children }: SidebarProviderProps) => {
   const [isExpanded, setIsExpanded] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
-
-  // Load persisted sidebar state on mount
-  useEffect(() => {
-    try {
-      const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY)
-      if (stored !== null) {
-        const parsedValue = JSON.parse(stored)
-        if (typeof parsedValue === 'boolean') {
-          setIsExpanded(parsedValue)
-        }
-      }
-    } catch (error) {
-      console.error('Error loading sidebar state:', error)
-    } finally {
-      setIsLoaded(true)
-    }
-  }, [])
-
-  // Persist sidebar state changes
-  useEffect(() => {
-    if (isLoaded) {
-      try {
-        localStorage.setItem(SIDEBAR_STORAGE_KEY, JSON.stringify(isExpanded))
-      } catch (error) {
-        console.error('Error saving sidebar state:', error)
-      }
-    }
-  }, [isExpanded, isLoaded])
 
   const toggleSidebar = () => {
     setIsExpanded(prev => !prev)

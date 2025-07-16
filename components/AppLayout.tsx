@@ -9,7 +9,7 @@ interface AppLayoutProps {
 }
 
 export default function AppLayout({ children }: AppLayoutProps) {
-  const { isExpanded, expandSidebar } = useSidebar()
+  const { isExpanded } = useSidebar();
 
   const handleProfileClick = () => {
     // Navigate to profile/settings page in the future
@@ -32,17 +32,7 @@ export default function AppLayout({ children }: AppLayoutProps) {
           `}
         >
           {/* Hamburger Menu - Only show when sidebar is collapsed */}
-          {!isExpanded && (
-            <button
-              onClick={expandSidebar}
-              className="fixed top-4 left-20 z-50 p-2 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
-              aria-label="Expand sidebar"
-            >
-              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
-              </svg>
-            </button>
-          )}
+          {/* Removed: Floating hamburger button, now handled in Sidebar */}
 
           {/* App Content */}
           <main className="h-full overflow-hidden">

@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuth } from '../../contexts/AuthContext';
 import { db } from '../../lib/firebase'
 import {
   addDoc,
@@ -13,7 +14,6 @@ import {
   updateDoc
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
-import { useAuth } from '../../contexts/AuthContext'
 
 interface OngoingGame {
   task: string
