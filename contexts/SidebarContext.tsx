@@ -23,7 +23,7 @@ interface SidebarProviderProps {
   children: ReactNode
 }
 
-const SIDEBAR_STORAGE_KEY = 'workout-partner-sidebar-expanded'
+const SIDEBAR_STORAGE_KEY = 'super-app-sidebar-expanded'
 
 export const SidebarProvider = ({ children }: SidebarProviderProps) => {
   const [isExpanded, setIsExpanded] = useState(false)

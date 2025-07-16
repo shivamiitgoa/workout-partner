@@ -64,7 +64,7 @@ export const Sidebar = ({ onProfileClick }: SidebarProps) => {
         {isExpanded && (
           <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
-              Workout Partner
+              Super App
             </h2>
             <button
               onClick={collapseSidebar}

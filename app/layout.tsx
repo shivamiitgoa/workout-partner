@@ -5,8 +5,11 @@ import { AuthProvider } from "../contexts/AuthContext"
 import { SidebarProvider } from "../contexts/SidebarContext"
 
 export const metadata: Metadata = {
-  title: "Workout Partner",
-  description: "Your personal workout companion with timer, music, and workout plans",
+  title: "Super App",
+  description: "Your all-in-one application hub with workout companion, games, and more",
+  icons: {
+    icon: "/icon.svg",
+  },
   twitter: {
     card: "summary_large_image",
   },

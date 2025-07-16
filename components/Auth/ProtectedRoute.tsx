@@ -29,7 +29,7 @@ export const ProtectedRoute = ({ children, fallback }: ProtectedRouteProps) => {
               Authentication Required
             </h2>
             <p className="text-gray-600 dark:text-gray-400 mb-8">
-              Please sign in with your Google account to access your workout partner.
+              Please sign in with your Google account to access Super App.
             </p>
             <div className="flex justify-center">
               <LoginButton />
