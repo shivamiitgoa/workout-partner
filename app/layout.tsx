@@ -2,6 +2,7 @@ import "styles/tailwind.css"
 import { Metadata, Viewport } from "next"
 import { WorkoutProvider } from "components/IntervalTimer/WorkoutContext"
 import { AuthProvider } from "../contexts/AuthContext"
+import { SidebarProvider } from "../contexts/SidebarContext"
 
 export const metadata: Metadata = {
   title: "Workout Partner",
@@ -34,9 +35,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       </head>
       <body className="overflow-hidden">
         <AuthProvider>
-          <WorkoutProvider>
-            {children}
-          </WorkoutProvider>
+          <SidebarProvider>
+            <WorkoutProvider>
+              {children}
+            </WorkoutProvider>
+          </SidebarProvider>
         </AuthProvider>
       </body>
     </html>

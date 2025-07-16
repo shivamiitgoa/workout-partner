@@ -1,55 +1,58 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { AuthWrapper, ProtectedRoute } from "components/Auth"
-import { IntervalTimer } from "components/IntervalTimer/IntervalTimer"
-import { Settings } from "components/Settings/Settings"
-import { DEFAULT_SETTINGS, isValidSettings, Settings as SettingsType, STORAGE_KEY } from "components/Settings/types"
-import { YouTubePlayer } from "components/YouTubePlayer/YouTubePlayer"
+import { useState } from "react"
+import { ProtectedRoute } from "components/Auth"
+import { Header } from "components/Header"
+import { Sidebar } from "components/Sidebar"
+import WorkoutPage from "./workout/page"
+import { useSidebar } from "../contexts/SidebarContext"
 
-export default function Web() {
-  const [settings, setSettings] = useState<SettingsType>(DEFAULT_SETTINGS);
+const applications = {
+  workout: WorkoutPage
+  // Future applications will be added here
+}
 
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
-      try {
-        const parsedSettings = JSON.parse(stored);
-        if (isValidSettings(parsedSettings)) {
-          setSettings(parsedSettings);
-        }
-      } catch (error) {
-        console.error('Error parsing settings:', error);
-      }
-    }
-  }, []);
+export default function MainApp() {
+  const [currentApp, setCurrentApp] = useState('workout')
+  const { isExpanded } = useSidebar()
+
+  const handleAppChange = (appId: string) => {
+    setCurrentApp(appId)
+  }
+
+  const handleProfileClick = () => {
+    // Navigate to profile/settings page in the future
+    console.log('Profile clicked')
+  }
+
+  const CurrentAppComponent = applications[currentApp as keyof typeof applications] || WorkoutPage
 
   return (
     <ProtectedRoute>
-      {/* Auth wrapper for showing user profile or login */}
-      <div className="fixed top-4 right-4 z-50">
-        <AuthWrapper />
+      <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+        {/* Sidebar */}
+        <Sidebar 
+          currentApp={currentApp}
+          onAppChange={handleAppChange}
+          onProfileClick={handleProfileClick}
+        />
+
+        {/* Main Content Area */}
+        <div 
+          className={`
+            flex-1 flex flex-col transition-all duration-300 ease-in-out
+            ${isExpanded ? 'ml-64' : 'ml-16'}
+          `}
+        >
+          {/* Header */}
+          <Header title={applications[currentApp as keyof typeof applications] === WorkoutPage ? 'Workout' : 'App'} />
+
+          {/* App Content */}
+          <main className="flex-1 overflow-hidden">
+            <CurrentAppComponent />
+          </main>
+        </div>
       </div>
-      
-      <section className="bg-white dark:bg-gray-900">
-        <div className="fixed left-0 top-0 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
-          <IntervalTimer />
-        </div>
-        <div className="fixed left-0 top-1/2 h-1/2 w-1/2 border-r border-gray-200 dark:border-gray-700">
-          <YouTubePlayer
-            videoUrl={settings.youtubeUrl}
-            className="h-full w-full"
-          />
-        </div>
-        <div className="fixed right-0 top-0 h-screen w-1/2">
-          <iframe 
-            src={settings.docsUrl}
-            className="h-full w-full"
-            allow="clipboard-write"
-          />
-        </div>
-      </section>
-      <Settings />
     </ProtectedRoute>
   )
 }
