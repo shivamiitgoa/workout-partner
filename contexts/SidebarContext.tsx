@@ -26,7 +26,7 @@ interface SidebarProviderProps {
 const SIDEBAR_STORAGE_KEY = 'workout-partner-sidebar-expanded'
 
 export const SidebarProvider = ({ children }: SidebarProviderProps) => {
-  const [isExpanded, setIsExpanded] = useState(true)
+  const [isExpanded, setIsExpanded] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
 
   // Load persisted sidebar state on mount

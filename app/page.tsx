@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { ProtectedRoute } from "components/Auth"
-import { Header } from "components/Header"
 import { Sidebar } from "components/Sidebar"
 import WorkoutPage from "./workout/page"
 import { useSidebar } from "../contexts/SidebarContext"
@@ -14,7 +13,7 @@ const applications = {
 
 export default function MainApp() {
   const [currentApp, setCurrentApp] = useState('workout')
-  const { isExpanded } = useSidebar()
+  const { isExpanded, expandSidebar } = useSidebar()
 
   const handleAppChange = (appId: string) => {
     setCurrentApp(appId)
@@ -40,15 +39,25 @@ export default function MainApp() {
         {/* Main Content Area */}
         <div 
           className={`
-            flex-1 flex flex-col transition-all duration-300 ease-in-out
+            flex-1 transition-all duration-300 ease-in-out relative
             ${isExpanded ? 'ml-64' : 'ml-16'}
           `}
         >
-          {/* Header */}
-          <Header title={applications[currentApp as keyof typeof applications] === WorkoutPage ? 'Workout' : 'App'} />
+          {/* Hamburger Menu - Only show when sidebar is collapsed */}
+          {!isExpanded && (
+            <button
+              onClick={expandSidebar}
+              className="fixed top-4 left-20 z-50 p-2 bg-white dark:bg-gray-800 rounded-md shadow-lg border border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors duration-200"
+              aria-label="Expand sidebar"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+            </button>
+          )}
 
           {/* App Content */}
-          <main className="flex-1 overflow-hidden">
+          <main className="h-full overflow-hidden">
             <CurrentAppComponent />
           </main>
         </div>
