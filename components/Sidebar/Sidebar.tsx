@@ -1,5 +1,6 @@
 'use client'
 
+import { usePathname } from 'next/navigation'
 import { NavigationItem } from './NavigationItem'
 import { ProfileSection } from './ProfileSection'
 import { useSidebar } from '../../contexts/SidebarContext'
@@ -39,21 +40,12 @@ const applications = [
 ]
 
 interface SidebarProps {
-  currentApp?: string
-  onAppChange?: (appId: string) => void
   onProfileClick?: () => void
 }
 
-export const Sidebar = ({ 
-  currentApp = 'workout', 
-  onAppChange,
-  onProfileClick 
-}: SidebarProps) => {
+export const Sidebar = ({ onProfileClick }: SidebarProps) => {
   const { isExpanded, collapseSidebar } = useSidebar()
-
-  const handleAppClick = (appId: string) => {
-    onAppChange?.(appId)
-  }
+  const pathname = usePathname()
 
   const handleProfileClick = () => {
     onProfileClick?.()
@@ -91,9 +83,9 @@ export const Sidebar = ({
               key={app.id}
               icon={app.icon}
               label={app.label}
-              isActive={currentApp === app.id}
+              isActive={pathname.startsWith(app.path)}
               isExpanded={isExpanded}
-              onClick={() => handleAppClick(app.id)}
+              href={app.path}
             />
           ))}
         </div>

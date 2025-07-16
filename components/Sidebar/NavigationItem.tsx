@@ -1,5 +1,6 @@
 'use client'
 
+import Link from 'next/link'
 import { ReactNode } from 'react'
 import { Tooltip } from '../Tooltip/Tooltip'
 
@@ -8,7 +9,7 @@ interface NavigationItemProps {
   label: string
   isActive?: boolean
   isExpanded: boolean
-  onClick?: () => void
+  href: string
   className?: string
 }
 
@@ -17,7 +18,7 @@ export const NavigationItem = ({
   label,
   isActive = false,
   isExpanded,
-  onClick,
+  href,
   className = ''
 }: NavigationItemProps) => {
   const baseClasses = `
@@ -29,7 +30,7 @@ export const NavigationItem = ({
   `
 
   const content = (
-    <div className={baseClasses} onClick={onClick}>
+    <div className={baseClasses}>
       <div className="flex-shrink-0 w-6 h-6 flex items-center justify-center">
         {icon}
       </div>
@@ -45,10 +46,16 @@ export const NavigationItem = ({
   if (!isExpanded) {
     return (
       <Tooltip explainer={label} side="right">
-        {content}
+        <Link href={href} className="block">
+          {content}
+        </Link>
       </Tooltip>
     )
   }
 
-  return content
+  return (
+    <Link href={href} className="block">
+      {content}
+    </Link>
+  )
 } 
