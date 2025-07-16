@@ -9,7 +9,8 @@ import {
   orderBy,
   query,
   runTransaction,
-  Timestamp
+  Timestamp,
+  updateDoc
 } from 'firebase/firestore'
 import { useEffect, useState } from 'react'
 import { useAuth } from '../../contexts/AuthContext'
@@ -43,6 +44,12 @@ export default function Game() {
   const [gameStats, setGameStats] = useState<GameStats | null>(null)
   const [gameHistory, setGameHistory] = useState<GameHistoryItem[]>([])
   const [loadingData, setLoadingData] = useState(true)
+
+  // --- Modal state ---
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [editingGameId, setEditingGameId] = useState<string | null>(null)
+  const [editRemark, setEditRemark] = useState('')
+  const [savingRemark, setSavingRemark] = useState(false)
 
   useEffect(() => {
     if (!user) return
@@ -236,6 +243,36 @@ export default function Game() {
     }, 3000)
   }
 
+  // --- Edit remark functions ---
+  function openEditModal(gameId: string, currentRemark: string) {
+    setEditingGameId(gameId)
+    setEditRemark(currentRemark)
+    setIsEditModalOpen(true)
+  }
+
+  function closeEditModal() {
+    setIsEditModalOpen(false)
+    setEditingGameId(null)
+    setEditRemark('')
+  }
+
+  async function saveRemark() {
+    if (!user || !editingGameId) return
+    setSavingRemark(true)
+    try {
+      const userDocRef = doc(db, 'game', user.uid)
+      const gameDocRef = doc(userDocRef, 'gameHistory', editingGameId)
+      await updateDoc(gameDocRef, {
+        remark: editRemark
+      })
+      closeEditModal()
+    } catch (error) {
+      console.error('Error updating remark:', error)
+    } finally {
+      setSavingRemark(false)
+    }
+  }
+
   // Early return if not authenticated
   if (authLoading) return <div>Loading...</div>
   if (!user) return <div className="text-center mt-20 text-lg">Please sign in to play the game.</div>
@@ -406,7 +443,20 @@ Review and polish content`}
                       <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">{formatTime(g.timeLimitSeconds)}</td>
                       <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">{formatTime(g.actualTimeSeconds)}</td>
                       <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">{g.result}</td>
-                      <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200">{g.remark || ''}</td>
+                      <td className="px-3 py-2 text-sm text-gray-700 dark:text-gray-200 group relative">
+                        <div className="flex items-center justify-between">
+                          <span className="truncate max-w-24">{g.remark || ''}</span>
+                          <button
+                            onClick={() => openEditModal(g.id, g.remark || '')}
+                            className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 ml-2 p-1 text-gray-400 hover:text-blue-600"
+                            title="Edit remark"
+                          >
+                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                            </svg>
+                          </button>
+                        </div>
+                      </td>
                     </tr>
                   ))
                 )}
@@ -415,6 +465,40 @@ Review and polish content`}
           </div>
         </div>
       </div>
+
+      {/* Edit Remark Modal */}
+      {isEditModalOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full p-6">
+            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
+              Edit Remark
+            </h3>
+            <textarea
+              value={editRemark}
+              onChange={(e) => setEditRemark(e.target.value)}
+              placeholder="Add your thoughts about this game..."
+              rows={4}
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none mb-4"
+            />
+            <div className="flex justify-end space-x-3">
+              <button
+                onClick={closeEditModal}
+                disabled={savingRemark}
+                className="px-4 py-2 text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors duration-200"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveRemark}
+                disabled={savingRemark}
+                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white rounded-lg transition-colors duration-200"
+              >
+                {savingRemark ? 'Saving...' : 'Save'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 
