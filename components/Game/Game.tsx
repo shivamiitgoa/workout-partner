@@ -1,8 +1,9 @@
 'use client'
 
 import { useCallback, useEffect, useState } from 'react'
+import { playAlarm, playBeep } from './audioUtils'
 
-type GameState = 'setup' | 'timer' | 'outcome' | 'result'
+type GameState = 'setup' | 'countdown' | 'timer' | 'outcome' | 'result'
 
 interface GameData {
   task: string
@@ -22,6 +23,7 @@ export default function Game() {
   })
   const [timeLeft, setTimeLeft] = useState<number>(0)
   const [selectedOutcome, setSelectedOutcome] = useState<'won' | 'lost' | 'draw' | null>(null)
+  const [countdown, setCountdown] = useState<number>(3)
 
   // Calculate total seconds for timer
   const calculateTotalSeconds = useCallback(() => {
@@ -56,7 +58,7 @@ export default function Game() {
     return 'text-blue-500'
   }
 
-  // Start the game
+  // Start the game with countdown
   const handleStart = () => {
     if (!gameData.task.trim()) return
     
@@ -69,7 +71,8 @@ export default function Game() {
       duration: totalSeconds
     }))
     setTimeLeft(totalSeconds)
-    setState('timer')
+    setCountdown(3)
+    setState('countdown')
   }
 
   // Handle outcome selection
@@ -89,7 +92,29 @@ export default function Game() {
     })
     setTimeLeft(0)
     setSelectedOutcome(null)
+    setCountdown(3)
   }
+
+  // Countdown effect
+  useEffect(() => {
+    if (state !== 'countdown') return
+
+    const interval = setInterval(() => {
+      setCountdown(prev => {
+        if (prev > 1) {
+          // Play countdown sound
+          playBeep()
+          return prev - 1
+        } else {
+          // Start the actual timer
+          setState('timer')
+          return 0
+        }
+      })
+    }, 1000)
+
+    return () => clearInterval(interval)
+  }, [state])
 
   // Timer effect - now based on actual elapsed time
   useEffect(() => {
@@ -99,6 +124,8 @@ export default function Game() {
       const remaining = calculateTimeLeft()
       
       if (remaining <= 0) {
+        // Play timer end sound
+        playAlarm()
         setState('outcome')
         setTimeLeft(0)
       } else {
@@ -111,7 +138,9 @@ export default function Game() {
 
   // Update page title with timer
   useEffect(() => {
-    if (state === 'timer' && timeLeft > 0) {
+    if (state === 'countdown') {
+      document.title = `⏰ ${countdown}... - ${gameData.task}`
+    } else if (state === 'timer' && timeLeft > 0) {
       document.title = `⏰ ${formatTime(timeLeft)} - ${gameData.task}`
     } else if (state === 'setup') {
       document.title = '🏆 Gamify Your Task'
@@ -123,7 +152,7 @@ export default function Game() {
                         selectedOutcome === 'draw' ? '🤝 IT\'S A DRAW' : ''
       document.title = resultText
     }
-  }, [state, timeLeft, gameData.task, selectedOutcome])
+  }, [state, timeLeft, gameData.task, selectedOutcome, countdown])
 
   // Auto-reset after result animation
   useEffect(() => {
@@ -198,6 +227,31 @@ export default function Game() {
             >
               Start Challenge
             </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Render countdown state
+  if (state === 'countdown') {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 dark:from-gray-900 dark:to-gray-800 flex flex-col items-center justify-center p-4">
+        <div className="text-center space-y-8">
+          {/* Task Display */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg max-w-md">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Mission:</h2>
+            <p className="text-gray-700 dark:text-gray-300">{gameData.task}</p>
+          </div>
+
+          {/* Countdown */}
+          <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 shadow-xl">
+            <div className="text-8xl font-mono font-bold text-blue-600 animate-pulse">
+              {countdown}
+            </div>
+            <div className="text-xl text-gray-600 dark:text-gray-400 mt-4">
+              Get ready...
+            </div>
           </div>
         </div>
       </div>
