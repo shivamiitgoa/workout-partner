@@ -180,12 +180,13 @@ export default function Game() {
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 Define Your Winning Outcome:
               </label>
-              <input
-                type="text"
+              <textarea
                 value={gameData.task}
                 onChange={(e) => setGameData(prev => ({ ...prev, task: e.target.value }))}
-                placeholder="e.g., Finalize the presentation slides"
-                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white"
+                placeholder="e.g., Finalize the presentation slides&#10;Complete all sections&#10;Review and polish content"
+                rows={3}
+                className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent dark:bg-gray-700 dark:text-white resize-none overflow-y-auto"
+                style={{ minHeight: '80px', maxHeight: '120px' }}
               />
             </div>
 
@@ -241,7 +242,7 @@ export default function Game() {
           {/* Task Display */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg max-w-md">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Mission:</h2>
-            <p className="text-gray-700 dark:text-gray-300">{gameData.task}</p>
+            <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{gameData.task}</div>
           </div>
 
           {/* Countdown */}
@@ -266,7 +267,7 @@ export default function Game() {
           {/* Task Display */}
           <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-lg max-w-md">
             <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">Your Mission:</h2>
-            <p className="text-gray-700 dark:text-gray-300">{gameData.task}</p>
+            <div className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{gameData.task}</div>
           </div>
 
           {/* Timer */}
@@ -293,7 +294,7 @@ export default function Game() {
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
               ⏰ Time's up! Did you succeed?
             </h2>
-            <p className="text-gray-600 dark:text-gray-400 mb-6">{gameData.task}</p>
+            <div className="text-gray-600 dark:text-gray-400 mb-6 whitespace-pre-wrap">{gameData.task}</div>
             
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <button
