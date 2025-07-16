@@ -280,6 +280,22 @@ export default function Game() {
           <div className="text-gray-600 dark:text-gray-400 text-sm">
             ⏰ No pause or stop - stay focused!
           </div>
+
+          {/* Early Win / Give Up Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
+            <button
+              onClick={() => handleOutcomeSelect('won')}
+              className="bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
+            >
+              🎉 Early Win
+            </button>
+            <button
+              onClick={() => handleOutcomeSelect('lost')}
+              className="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-8 rounded-lg transition-colors duration-200"
+            >
+              💔 Give Up
+            </button>
+          </div>
         </div>
       </div>
     )
