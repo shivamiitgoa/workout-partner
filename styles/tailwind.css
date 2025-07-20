@@ -1,4 +1,5 @@
 @import 'tailwindcss';
+@import '@uiw/react-md-editor/markdown-editor.css';
 
 @config '../tailwind.config.js';
 
@@ -31,5 +32,38 @@
   html {
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
+  }
+
+  /* Markdown Editor Custom Styles */
+  [data-color-mode*='dark'] .w-md-editor {
+    background-color: rgb(31, 41, 55) !important;
+    color: rgb(243, 244, 246) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-text {
+    background-color: rgb(31, 41, 55) !important;
+    color: rgb(243, 244, 246) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-text-input {
+    background-color: rgb(31, 41, 55) !important;
+    color: rgb(243, 244, 246) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-toolbar {
+    background-color: rgb(55, 65, 81) !important;
+    border-bottom: 1px solid rgb(75, 85, 99) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-toolbar-divider {
+    background-color: rgb(75, 85, 99) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-toolbar-item {
+    color: rgb(243, 244, 246) !important;
+  }
+
+  [data-color-mode*='dark'] .w-md-editor-toolbar-item:hover {
+    background-color: rgb(75, 85, 99) !important;
   }
 }

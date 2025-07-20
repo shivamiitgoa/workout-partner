@@ -46,12 +46,15 @@ Don't worry, with this template you will anyways get all the awesomeness you nee
 - **Components coupling and cohesion graph** - A tool for managing component relationships
 - **[Semantic Release](https://github.com/semantic-release/semantic-release)** - for automatic changelog
 - **[T3 Env](https://env.t3.gg/)** - Manage your environment variables with ease
+- 📝 **Markdown Editor** - Rich markdown editor with syntax highlighting and real-time preview
 
 ## Table of Contents
 
 - [Next.js Enterprise Boilerplate](#nextjs-enterprise-boilerplate)
   - [Features](#features)
   - [Table of Contents](#table-of-contents)
+  - [Workout App Features](#workout-app-features)
+    - [Markdown Notes](#markdown-notes)
   - [Getting Started](#-getting-started)
   - [Deployment](#-deployment)
   - [Scripts Overview](#-scripts-overview)
@@ -71,6 +74,58 @@ Don't worry, with this template you will anyways get all the awesomeness you nee
   - [Support](#support)
   - [License](#-license)
   - [Contributors](#contributors)
+
+## 💪 Workout App Features
+
+This boilerplate has been customized into a comprehensive workout application with the following features:
+
+- **Interval Timer**: Customizable workout timers with different intervals and configurations
+- **YouTube Integration**: Watch workout videos while timing your exercises
+- **Markdown Notes**: Write and edit your workout plans with rich markdown support
+- **Dark/Light Theme**: Toggle between themes for better visibility during workouts
+- **Firebase Integration**: Secure user authentication and data storage
+- **Responsive Design**: Works seamlessly on desktop and mobile devices
+
+### Markdown Notes
+
+The workout app includes a powerful markdown editor in the right pane:
+
+- **View Mode**: See your formatted workout notes with proper styling
+- **Edit Mode**: Write with syntax highlighting and markdown preview
+- **Auto-save**: Changes are automatically saved every 30 seconds
+- **Real-time Sync**: Notes sync across all your devices
+- **Rich Formatting**: Support for headers, lists, links, and more
+
+#### How to Use
+
+1. Navigate to the Workout page
+2. Your workout notes will be displayed in view mode by default
+3. Click the "Edit" button to switch to edit mode
+4. Write your workout plan using markdown syntax
+5. Click "Save" to save changes and return to view mode
+6. Click "Cancel" to discard changes
+
+#### Markdown Examples
+
+```markdown
+# My Workout Plan
+
+## Warm-up (10 minutes)
+- Light jogging
+- Dynamic stretches
+- Jumping jacks
+
+## Main Workout
+### Circuit 1 (3 rounds)
+1. Push-ups: 10 reps
+2. Squats: 15 reps
+3. Plank: 30 seconds
+
+### Circuit 2 (3 rounds)
+1. Burpees: 8 reps
+2. Lunges: 12 reps each leg
+3. Mountain climbers: 20 reps
+```
 
 ## 🎯 Getting Started
 
