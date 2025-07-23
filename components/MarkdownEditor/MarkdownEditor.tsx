@@ -19,30 +19,52 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [lastSaved, setLastSaved] = useState<Date | null>(null);
+  const [isDefault, setIsDefault] = useState(false); // Track if showing default
+  const [resetting, setResetting] = useState(false); // Track reset state
 
-  // Load user's workout note
+  // Load user's workout note or default
   useEffect(() => {
     if (user?.uid) {
       loadWorkoutNote();
     }
   }, [user?.uid]);
 
+  const loadDefaultNote = async () => {
+    try {
+      const res = await fetch('/workout-notes.md');
+      if (!res.ok) throw new Error('Failed to load default note');
+      const text = await res.text();
+      return text;
+    } catch (error) {
+      console.error('Error loading default workout note:', error);
+      return '';
+    }
+  };
+
   const loadWorkoutNote = async () => {
     if (!user?.uid) return;
-    
+    setLoading(true);
+    setIsDefault(false);
     try {
-      setLoading(true);
       const note = await getUserWorkoutNote(user.uid);
-      if (note) {
-        setContent(note.content || '');
-        setOriginalContent(note.content || '');
+      if (note && note.content) {
+        setContent(note.content);
+        setOriginalContent(note.content);
+        setIsDefault(false);
       } else {
-        // Create empty note if none exists
-        setContent('');
-        setOriginalContent('');
+        // No user note, load default
+        const defaultNote = await loadDefaultNote();
+        setContent(defaultNote);
+        setOriginalContent(defaultNote);
+        setIsDefault(true);
       }
     } catch (error) {
       console.error('Error loading workout note:', error);
+      // fallback to default
+      const defaultNote = await loadDefaultNote();
+      setContent(defaultNote);
+      setOriginalContent(defaultNote);
+      setIsDefault(true);
     } finally {
       setLoading(false);
     }
@@ -50,7 +72,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
 
   // Auto-save functionality
   useEffect(() => {
-    if (!isEditMode || !user?.uid || content === originalContent) return;
+    if (!isEditMode || !user?.uid || content === originalContent || isDefault) return;
 
     const autoSaveTimer = setTimeout(async () => {
       try {
@@ -58,6 +80,7 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
         await saveWorkoutNote(user.uid, content);
         setOriginalContent(content);
         setLastSaved(new Date());
+        setIsDefault(false);
       } catch (error) {
         console.error('Auto-save failed:', error);
       } finally {
@@ -66,17 +89,17 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
     }, 30000); // Auto-save every 30 seconds
 
     return () => clearTimeout(autoSaveTimer);
-  }, [content, isEditMode, user?.uid, originalContent]);
+  }, [content, isEditMode, user?.uid, originalContent, isDefault]);
 
   const handleSave = async () => {
     if (!user?.uid) return;
-    
     try {
       setSaving(true);
       await saveWorkoutNote(user.uid, content);
       setOriginalContent(content);
       setLastSaved(new Date());
       setIsEditMode(false);
+      setIsDefault(false);
     } catch (error) {
       console.error('Error saving workout note:', error);
     } finally {
@@ -91,6 +114,24 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
 
   const handleEdit = () => {
     setIsEditMode(true);
+  };
+
+  const handleResetToDefault = async () => {
+    if (!user?.uid) return;
+    setResetting(true);
+    try {
+      const defaultNote = await loadDefaultNote();
+      setContent(defaultNote);
+      setOriginalContent(defaultNote);
+      await saveWorkoutNote(user.uid, defaultNote);
+      setIsDefault(false);
+      setLastSaved(new Date());
+      setIsEditMode(false);
+    } catch (error) {
+      console.error('Error resetting to default note:', error);
+    } finally {
+      setResetting(false);
+    }
   };
 
   if (loading) {
@@ -135,12 +176,22 @@ export const MarkdownEditor: React.FC<MarkdownEditorProps> = ({ className = '' }
               </button>
             </>
           ) : (
-            <button
-              onClick={handleEdit}
-              className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
-            >
-              Edit
-            </button>
+            <>
+              <button
+                onClick={handleEdit}
+                className="px-3 py-1 text-sm bg-green-600 text-white rounded hover:bg-green-700"
+              >
+                Edit
+              </button>
+              <button
+                onClick={handleResetToDefault}
+                disabled={resetting || isDefault}
+                className="px-3 py-1 text-sm bg-yellow-600 text-white rounded hover:bg-yellow-700 disabled:opacity-50"
+                title={isDefault ? 'Already showing default note' : 'Reset your note to the default template'}
+              >
+                {resetting ? 'Resetting...' : 'Reset to Default'}
+              </button>
+            </>
           )}
         </div>
       </div>
